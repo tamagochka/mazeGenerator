@@ -38,9 +38,26 @@ public class Position {
         return new Position(x, y - dy);
     }
 
+    public Position diff(Position position) {
+        return new Position(this.x - position.x, this.y - position.y);
+    }
+
+    public Position sum(Position position) {
+        return new Position(this.x + position.x, this.y + position.y);
+    }
+
+    public Position normalize() {
+        return new Position(this.x == 0 ? 0 : this.x / Math.abs(this.x), this.y == 0 ? 0 : this.y / Math.abs(this.y));
+    }
+
     @Override
     public boolean equals(Object position) {
         return this.x == ((Position)position).x && this.y == ((Position)position).y;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + x + "; " + y + "]";
     }
 
 }

@@ -70,7 +70,6 @@ public class Labyrinth {
         System.out.println(parts[6] + " " + parts[5] + " " + parts[4]);
 
 
-
         // calculating parts coordinates
         int[][] parts_coords = new int[8][4];
         int[] coords = {left, top, nleft, ntop, nright, nbottom, right, bottom};
@@ -125,8 +124,13 @@ public class Labyrinth {
         int fullWidth = width * 2 + 1; // full size with borders and walls
         int fullHeight = height * 2 + 1;
 
-        Position fullStart = new Position(start.getX() * 2 + 1, start.getY() * 2 + 1);
-        Position fullFinish = new Position(finish.getX() * 2 + 1, finish.getY() * 2 + 1);
+        Position fullStart = null;
+        Position fullFinish = null;
+
+        if(start != null) fullStart = new Position(start.getX() * 2 + 1, start.getY() * 2 + 1);
+        else fullStart = new Position(1, 1);
+        if(finish != null) fullFinish = new Position(finish.getX() * 2 + 1, finish.getY() * 2 + 1);
+        else fullFinish = new Position((width - 1) * 2 + 1, (height - 1) * 2 + 1);
 
         byte[][] lab = new byte[fullHeight][fullWidth];
 
@@ -213,8 +217,10 @@ public class Labyrinth {
             for(int y = 0; y < fullHeight; y++)
                 if(lab[y][x] != 0) lab[y][x] = 1;
 
-        lab[fullStart.getY()][fullStart.getX()] = 5; // start point
-        lab[fullFinish.getY()][fullFinish.getX()] = 7; // finish point
+        if(start != null)
+            lab[fullStart.getY()][fullStart.getX()] = 5; // start point
+        if(finish != null)
+            lab[fullFinish.getY()][fullFinish.getX()] = 7; // finish point
 
         return lab;
     }
@@ -226,8 +232,8 @@ public class Labyrinth {
     }
 
     private static int findContactPoint(int first_side_pos, int second_side_pos,
-                                            int first_side_start, int first_side_end,
-                                            int second_side_start, int second_side_end) {
+                                        int first_side_start, int first_side_end,
+                                        int second_side_start, int second_side_end) {
         if(first_side_pos == second_side_pos) {
             if(first_side_start < second_side_end &&
                     first_side_end > second_side_start) {
@@ -244,12 +250,8 @@ public class Labyrinth {
 
         if(width < MINIMAL_BOX_SPLIT || height < MINIMAL_BOX_SPLIT) return null;
 
-
         int fullWidth = width * 2 + 1; // full size with borders and walls
         int fullHeight = height * 2 + 1;
-/*        Position fullStart = new Position(start.getX() * 2 + 1, start.getY() * 2 + 1);
-        Position fullFinish = new Position(finish.getX() * 2 + 1, finish.getY() * 2 + 1);
-*/
 
         byte[][] lab = new byte[fullHeight][fullWidth];
 
@@ -264,58 +266,84 @@ public class Labyrinth {
         pieces.add(new int[]{0, 5, 9, 4});
         pieces.add(new int[]{0, 2, 3, 3});
 
-        Random random = new Random();
-        Position[][] adj = new Position[pieces.size()][pieces.size()];
 
+        // move start piece to up list, and finish to down list
+        int f = 0, e = 0;
         for(int i = 0; i < pieces.size(); i++) {
-            System.out.println("l: " + pieces.get(i)[0] + " t: " + pieces.get(i)[1] +
-                " r: " + (pieces.get(i)[0] + pieces.get(i)[2]) + " b: " + (pieces.get(i)[1] + pieces.get(i)[3]));
+            if(pieces.get(i)[0] <= start.getX() && start.getX() < pieces.get(i)[0] + pieces.get(i)[2] &&
+                pieces.get(i)[1] <= start.getY() && start.getY() < pieces.get(i)[1] + pieces.get(i)[3]) {
+                f = i;
+            }
+        }
+        pieces.add(0, pieces.remove(f));
+        for(int i = 0; i < pieces.size(); i++) {
+            if(pieces.get(i)[0] <= finish.getX() && finish.getX() < pieces.get(i)[0] + pieces.get(i)[2] &&
+                    pieces.get(i)[1] <= finish.getY() && finish.getY() < pieces.get(i)[1] + pieces.get(i)[3]) {
+                e = i;
+            }
+        }
+        pieces.add(pieces.remove(e));
+
+        // find connection point for pieces and build adjacency matrix
+        Position[][] adj = new Position[pieces.size()][pieces.size()]; // adjacency matrix
+        for(int i = 0; i < pieces.size(); i++) {
             for(int j = 0; j < pieces.size(); j++) {
-/*
-                if(pieces.get(i)[0] + pieces.get(i)[2] == pieces.get(j)[0]) {
-                    if(pieces.get(i)[1] < pieces.get(j)[1] + pieces.get(j)[3] &&
-                            pieces.get(i)[1] + pieces.get(i)[3] > pieces.get(j)[1]) {
-                        int s_touch = Math.max(pieces.get(i)[1], pieces.get(j)[1]);
-                        int e_touch = Math.min(pieces.get(i)[1] + pieces.get(i)[3],
-                                pieces.get(j)[1] + pieces.get(j)[3]);
-                        adj[j][i] = adj[i][j] = new Position(pieces.get(j)[0], random.nextInt( s_touch - e_touch) + e_touch);
-                    }
-                }
-                if(pieces.get(i)[1] + pieces.get(i)[3] == pieces.get(j)[1]) {
-                    if(pieces.get(i)[0] < pieces.get(j)[0] + pieces.get(j)[2] &&
-                            pieces.get(i)[0] + pieces.get(i)[2] > pieces.get(j)[0]) {
-                        int s_touch = Math.max(pieces.get(i)[0], pieces.get(j)[0]);
-                        int e_touch = Math.min(pieces.get(i)[0] + pieces.get(i)[2],
-                                pieces.get(j)[0] + pieces.get(j)[2]);
-                        adj[j][i] = adj[i][j] = new Position(random.nextInt( s_touch - e_touch) + e_touch, pieces.get(j)[1]);
-                    }
-                }
-*/
                 int point = findContactPoint(pieces.get(i)[0] + pieces.get(i)[2], pieces.get(j)[0],
                         pieces.get(i)[1], pieces.get(i)[1] + pieces.get(i)[3],
                         pieces.get(j)[1], pieces.get(j)[1] + pieces.get(j)[3]);
-                if(point >= 0) adj[j][i] = adj[i][j] = new Position(pieces.get(j)[0], point);
-
+                if(point >= 0) {
+                    adj[i][j] = new Position(pieces.get(j)[0] - (i > j ? 1 : 0), point);
+                    adj[j][i] = new Position(pieces.get(j)[0] - (i > j ? 0 : 1), point);
+                }
                 point = findContactPoint(pieces.get(i)[1] + pieces.get(i)[3], pieces.get(j)[1],
                         pieces.get(i)[0], pieces.get(i)[0] + pieces.get(i)[2],
                         pieces.get(j)[0], pieces.get(j)[0] + pieces.get(j)[2]);
-                if(point >= 0) adj[j][i] = adj[i][j] = new Position(point, pieces.get(j)[1]);
+                if(point >= 0) {
+                    adj[i][j] = new Position(point, pieces.get(j)[1] - (i > j ? 1 : 0));
+                    adj[j][i] = new Position(point, pieces.get(j)[1] - (i > j ? 0 : 1));
+                }
             }
         }
 
 
         for(int i = 0; i < pieces.size(); i++) {
-            byte[][] pieceLab = generator(
-                    pieces.get(i)[2], pieces.get(i)[3],
-                    new Position(0, 0), new Position(pieces.get(i)[2] - 1, pieces.get(i)[3] - 1));
-            mergeArrays(lab, pieces.get(i)[0] * 2, pieces.get(i)[1] * 2, pieceLab);
+            System.out.println(pieces.get(i)[0] + " " + pieces.get(i)[1] + " " + pieces.get(i)[2] + " " + pieces.get(i)[3]);
         }
 
+
+
+
+        // generate and merge all pieces to one big maze
+        mergeArrays(lab, pieces.get(0)[0] * 2, pieces.get(0)[1] * 2, // generate start maze
+                generator(pieces.get(0)[2], pieces.get(0)[3], new Position(start.getX() - pieces.get(0)[0], start.getY() - pieces.get(0)[1]), null));
+        for(int i = 1; i < pieces.size() - 1; i++) {
+            byte[][] pieceLab = generator(pieces.get(i)[2], pieces.get(i)[3], null, null);
+            mergeArrays(lab, pieces.get(i)[0] * 2, pieces.get(i)[1] * 2, pieceLab);
+        }
+        mergeArrays(lab, pieces.get(pieces.size() - 1)[0] * 2, pieces.get(pieces.size() - 1)[1] * 2, // generate finish maze
+                generator(pieces.get(pieces.size() - 1)[2], pieces.get(pieces.size() - 1)[3], null, new Position(finish.getX() - pieces.get(pieces.size() - 1)[0], finish.getY() - pieces.get(pieces.size() - 1)[1])));
+
+        // put connect point
         for(int i = 0; i < adj.length; i++) {
             for(int j = 0; j < adj.length; j++) {
-                if(adj[i][j] != null)lab[adj[i][j].getY() * 2][adj[i][j].getX() * 2] = 7;
+                if(adj[i][j] != null)
+                    lab[adj[i][j].getY() * 2 + 1][adj[i][j].getX() * 2 + 1] = (byte)(i < j ? 7 : 5);
             }
         }
+        // put spaces on connect point
+        for(int i = 0; i < adj.length; i++) {
+            for(int j = i + 1; j < adj.length; j++) {
+                if(adj[i][j] != null) {
+                    Position endPoint = new Position(adj[i][j].getX() * 2 + 1, adj[i][j].getY() * 2 + 1);
+                    Position startPoint = new Position(adj[j][i].getX() * 2 + 1, adj[j][i].getY() * 2 + 1);
+                    Position diff = endPoint.diff(startPoint);
+                    Position space = startPoint.sum(diff.normalize());
+                    lab[space.getY()][space.getX()] = 0;
+                }
+            }
+        }
+
+
 
         Labyrinth labyrinth = new Labyrinth(width, height, fullWidth, fullHeight, lab);
         return labyrinth;
