@@ -337,46 +337,90 @@ public class Labyrinth {
             }
         }
         // structure paths == [length route][r][o][u][t][e]...
-        int[][] paths = pathsFinder(0, pieces.size() - 1, graph);
-        Arrays.sort(paths, Comparator.comparingInt(i -> i[0]));
+        int[][] possiblePaths = pathsFinder(0, pieces.size() - 1, graph);
+        Arrays.sort(possiblePaths, Comparator.comparingInt(i -> i[0]));
 
         // find most frequent path length
         int maxFreqLen = 0;
         int countMaxFreqLen = 0;
-        for(int i = 0; i < paths.length; i++) {
+        for(int i = 0; i < possiblePaths.length; i++) {
             int countFreqLen = 0;
-            for(int j = 0; j < paths.length; j++) {
-                if(paths[i][0] == paths[j][0]) {
+            for(int j = 0; j < possiblePaths.length; j++) {
+                if(possiblePaths[i][0] == possiblePaths[j][0]) {
                     countFreqLen++;
                 }
             }
             if(countMaxFreqLen < countFreqLen) {
                 countMaxFreqLen = countFreqLen;
-                maxFreqLen = paths[i][0];
+                maxFreqLen = possiblePaths[i][0];
             }
         }
 
         // select the main path from start to end
-        int mainPath = 0;
+        int mainPathNumber = 0;
         Random random = new Random();
-        for(int i = 0; i < paths.length; i++) {
-            if(paths[i][0] == maxFreqLen) {
-                mainPath = i + random.nextInt(countMaxFreqLen);
+        for(int i = 0; i < possiblePaths.length; i++) {
+            if(possiblePaths[i][0] == maxFreqLen) {
+                mainPathNumber = i + random.nextInt(countMaxFreqLen);
                 break;
             }
         }
 
-        System.out.println("main path: ");
-        for(int i = 1; i < paths[mainPath][0] + 1; i++) {
-            System.out.print(paths[mainPath][i] + " ");
-        }
-        System.out.println();
-        for(int i = 0; i < paths.length; i++) {
-            for(int j = 0; j < paths[i][0] + 1; j++) {
-                System.out.print(paths[i][j] + " ");
+
+        for(int i = 0; i < possiblePaths.length; i++) {
+            for(int j = 0; j < possiblePaths[i][0] + 1; j++) {
+                System.out.print(possiblePaths[i][j] + " ");
             }
             System.out.println();
         }
+
+
+        // build dead end paths
+        int[][] paths = new int[possiblePaths.length][possiblePaths[0].length];
+        int countPaths = 1;
+        paths[0] = possiblePaths[mainPathNumber];
+        for(int l = 2; l < possiblePaths[possiblePaths.length - 1][0] + 1; l++) {
+            for(int i = possiblePaths.length - 1; i >= 0; i--) {
+                if(l > possiblePaths[i][0]) continue;
+                int[] newPath = new int[possiblePaths[0].length];
+                newPath[1] = possiblePaths[i][l - 1];
+                int newPathLen = 1;
+                int n = l;
+                boolean endPath = false;
+                while(!endPath) {
+                    for(int j = 0; j < countPaths; j++) {
+                        for(int k = 1; k < paths[j][0] + 1; k++) {
+                            if(possiblePaths[i][n] == paths[j][k]) {
+                                endPath = true;
+                                break;
+                            }
+                        }
+                        if(endPath) break;
+                    }
+                    if(!endPath) {
+                        newPath[newPathLen + 1] = possiblePaths[i][n];
+                        newPathLen++;
+                    }
+                    n++;
+                }
+                if(newPathLen > 1) {
+                    newPath[0] = newPathLen;
+                    paths[countPaths] = newPath;
+                    countPaths++;
+                }
+            }
+        }
+
+
+        System.out.println("paths:");
+        for(int j = 0; j < countPaths; j++) {
+            for(int i = 1; i < paths[j][0] + 1; i++) {
+                System.out.print(paths[j][i] + " ");
+            }
+            System.out.println();
+        }
+
+
 
 
 
