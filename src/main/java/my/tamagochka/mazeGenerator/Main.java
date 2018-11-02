@@ -14,7 +14,6 @@ public class Main {
 
 
 
-
         Labyrinth labyrinth = Labyrinth.clusterGenerator(LABYRINTH_WIDTH, LABYRINTH_HEIGHT,
                 new Position(0, 0), new Position(LABYRINTH_WIDTH - 1, LABYRINTH_HEIGHT - 1));
 

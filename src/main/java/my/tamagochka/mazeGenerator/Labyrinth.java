@@ -1,8 +1,6 @@
 package my.tamagochka.mazeGenerator;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class Labyrinth {
 
@@ -246,6 +244,31 @@ public class Labyrinth {
         return -1;
     }
 
+    private static int[][] pathsFinder(int startPoint, int targetPoint, int[][] graph) {
+        List<int[]> paths = new LinkedList<>();
+        pathsFinder(startPoint, targetPoint, graph, new int[graph.length + 1], 0, new boolean[graph.length], paths);
+        return paths.toArray(new int[][]{});
+    }
+
+    private static void pathsFinder(int startPoint, int targetPoint, int[][] graph, int[] path, int count, boolean[] visited, List<int[]> paths) {
+        path[count + 1] = startPoint;
+        count++;
+        if(startPoint == targetPoint) {
+            path[0] = count;
+            int[] copy = new int[path.length];
+            System.arraycopy(path, 0, copy, 0, path.length);
+            paths.add(copy);
+            count = 0;
+            return;
+        }
+        visited[startPoint] = true;
+        for(int i = 0; i < graph.length; i++) {
+            if(graph[startPoint][i] != 0 && !visited[i])
+                pathsFinder(i, targetPoint, graph, path, count, visited, paths);
+        }
+        visited[startPoint] = false;
+    }
+
     public static Labyrinth clusterGenerator(int width, int height, Position start, Position finish) {
 
         if(width < MINIMAL_BOX_SPLIT || height < MINIMAL_BOX_SPLIT) return null;
@@ -305,10 +328,58 @@ public class Labyrinth {
             }
         }
 
-
+        // build all possible paths
+        int[][] graph = new int[pieces.size()][pieces.size()];
         for(int i = 0; i < pieces.size(); i++) {
-            System.out.println(pieces.get(i)[0] + " " + pieces.get(i)[1] + " " + pieces.get(i)[2] + " " + pieces.get(i)[3]);
+            for(int j = 0; j < pieces.size(); j++) {
+                if(adj[i][j] != null)
+                    graph[i][j] = 1;
+            }
         }
+        // structure paths == [length route][r][o][u][t][e]...
+        int[][] paths = pathsFinder(0, pieces.size() - 1, graph);
+        Arrays.sort(paths, Comparator.comparingInt(i -> i[0]));
+
+        // find most frequent path length
+        int maxFreqLen = 0;
+        int countMaxFreqLen = 0;
+        for(int i = 0; i < paths.length; i++) {
+            int countFreqLen = 0;
+            for(int j = 0; j < paths.length; j++) {
+                if(paths[i][0] == paths[j][0]) {
+                    countFreqLen++;
+                }
+            }
+            if(countMaxFreqLen < countFreqLen) {
+                countMaxFreqLen = countFreqLen;
+                maxFreqLen = paths[i][0];
+            }
+        }
+
+        // select the main path from start to end
+        int mainPath = 0;
+        Random random = new Random();
+        for(int i = 0; i < paths.length; i++) {
+            if(paths[i][0] == maxFreqLen) {
+                mainPath = i + random.nextInt(countMaxFreqLen);
+                break;
+            }
+        }
+
+        System.out.println("main path: ");
+        for(int i = 1; i < paths[mainPath][0] + 1; i++) {
+            System.out.print(paths[mainPath][i] + " ");
+        }
+        System.out.println();
+        for(int i = 0; i < paths.length; i++) {
+            for(int j = 0; j < paths[i][0] + 1; j++) {
+                System.out.print(paths[i][j] + " ");
+            }
+            System.out.println();
+        }
+
+
+
 
 
 
