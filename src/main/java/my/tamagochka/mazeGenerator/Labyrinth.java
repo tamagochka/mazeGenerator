@@ -35,10 +35,10 @@ public class Labyrinth {
         minBoxSize = minBoxSize < 2 ? 2 : minBoxSize;
         if(chanceToRecurseSplit != 0)
             chanceToRecurseSplit = chanceToRecurseSplit / 100 == 0 ? 100 : chanceToRecurseSplit / 100;
-
         if(left > right) left = left + right - (right = left);
         if(top > bottom) top = top + bottom - (bottom = top);
 
+        // TODO may by remove this line:
         if(right - left <= minBoxSize * 3 || bottom - top <= minBoxSize * 3) return;
 
         Random random = new Random();
@@ -49,7 +49,7 @@ public class Labyrinth {
         int ntop = random.nextInt(bottom - 3 * minBoxSize - top) + top + minBoxSize;
         int nbottom = random.nextInt(bottom - 2 * minBoxSize - ntop) + ntop + minBoxSize;
 
-        int startBoxNum = boxes.size();
+        // TODO !!!!!!! central box not splitted!
         boxes.add(new int[]{nleft, ntop, nright - nleft, nbottom - ntop}); // central box
 
         // allocation
@@ -62,11 +62,6 @@ public class Labyrinth {
             length += step;
             nextStep = (byte)(3 - length % 2);
         }
-
-        System.out.println(parts[0] + " " + parts[1] + " " + parts[2]);
-        System.out.println(parts[7] + " " + " " + " " + parts[3]);
-        System.out.println(parts[6] + " " + parts[5] + " " + parts[4]);
-
 
         // calculating parts coordinates
         int[][] parts_coords = new int[8][4];
@@ -102,18 +97,15 @@ public class Labyrinth {
                 }
             }
 
-            boxes.add(new int[]{block_coords[0], block_coords[1], block_coords[2] - block_coords[0], block_coords[3] - block_coords[1]});
+            if(random.nextInt(100) < chanceToRecurseSplit &&
+                    block_coords[2] - block_coords[0] > minBoxSize * 3 &&
+                    block_coords[3] - block_coords[1] > minBoxSize * 3) {
+                boxSplit(block_coords[0], block_coords[1], block_coords[2], block_coords[3], minBoxSize, chanceToRecurseSplit, boxes);
+            } else {
+                boxes.add(new int[]{block_coords[0], block_coords[1], block_coords[2] - block_coords[0], block_coords[3] - block_coords[1]});
+            }
             connected_parts[count_connected_parts] = parts[i];
             count_connected_parts++;
-        }
-
-        int endBoxNum = boxes.size();
-
-        for(int i = startBoxNum; i < endBoxNum; i++) {
-            if(random.nextInt(100) < chanceToRecurseSplit)
-                boxSplit(boxes.get(i)[0], boxes.get(i)[1],
-                        boxes.get(i)[0] + boxes.get(i)[2], boxes.get(i)[1] + boxes.get(i)[3],
-                        minBoxSize, chanceToRecurseSplit, boxes);
         }
     }
 
@@ -279,16 +271,8 @@ public class Labyrinth {
         byte[][] lab = new byte[fullHeight][fullWidth];
 
         List<int[]> pieces = new LinkedList<>();
-//        boxSplit(0, 0, width, height, MINIMAL_BOX_SPLIT, CHANCE_TO_RECURSE_SPLIT, pieces);
         // pieces [0] - x, [1] - y, [2] - w, [3] - h
-
-        pieces.add(new int[]{3, 2, 3, 3});
-        pieces.add(new int[]{0, 0, 6, 2});
-        pieces.add(new int[]{6, 0, 3, 2});
-        pieces.add(new int[]{6, 2, 3, 3});
-        pieces.add(new int[]{0, 5, 9, 4});
-        pieces.add(new int[]{0, 2, 3, 3});
-
+        boxSplit(0, 0, width, height, MINIMAL_BOX_SPLIT, CHANCE_TO_RECURSE_SPLIT, pieces);
 
         // move start piece to up list, and finish to down list
         int f = 0, e = 0;
@@ -336,10 +320,16 @@ public class Labyrinth {
                     graph[i][j] = 1;
             }
         }
+
         // structure paths == [length route][r][o][u][t][e]...
         int[][] possiblePaths = pathsFinder(0, pieces.size() - 1, graph);
         Arrays.sort(possiblePaths, Comparator.comparingInt(i -> i[0]));
 
+
+
+        // TODO change length of main path
+        // TODO froze
+        System.out.println("before froze");
         // find most frequent path length
         int maxFreqLen = 0;
         int countMaxFreqLen = 0;
@@ -355,6 +345,8 @@ public class Labyrinth {
                 maxFreqLen = possiblePaths[i][0];
             }
         }
+        System.out.println("after froze");
+        // TODO end froze
 
         // select the main path from start to end
         int mainPathNumber = 0;
@@ -365,15 +357,6 @@ public class Labyrinth {
                 break;
             }
         }
-
-
-        for(int i = 0; i < possiblePaths.length; i++) {
-            for(int j = 0; j < possiblePaths[i][0] + 1; j++) {
-                System.out.print(possiblePaths[i][j] + " ");
-            }
-            System.out.println();
-        }
-
 
         // build dead end paths
         int[][] paths = new int[possiblePaths.length][possiblePaths[0].length];
@@ -411,6 +394,16 @@ public class Labyrinth {
             }
         }
 
+        // delete from adjacency matrix no route point
+        Position[][] result_adj = new Position[adj.length][adj.length];
+        for(int i = 0; i < countPaths; i++) {
+            for(int j = 1; j < paths[i][0]; j++) {
+                result_adj[paths[i][j]][paths[i][j + 1]] = adj[paths[i][j]][paths[i][j + 1]];
+                result_adj[paths[i][j + 1]][paths[i][j]] = adj[paths[i][j + 1]][paths[i][j]];
+            }
+        }
+
+
 
         System.out.println("paths:");
         for(int j = 0; j < countPaths; j++) {
@@ -419,12 +412,6 @@ public class Labyrinth {
             }
             System.out.println();
         }
-
-
-
-
-
-
 
 
 
@@ -438,19 +425,26 @@ public class Labyrinth {
         mergeArrays(lab, pieces.get(pieces.size() - 1)[0] * 2, pieces.get(pieces.size() - 1)[1] * 2, // generate finish maze
                 generator(pieces.get(pieces.size() - 1)[2], pieces.get(pieces.size() - 1)[3], null, new Position(finish.getX() - pieces.get(pieces.size() - 1)[0], finish.getY() - pieces.get(pieces.size() - 1)[1])));
 
+
+
+
+
+
+
+
         // put connect point
-        for(int i = 0; i < adj.length; i++) {
-            for(int j = 0; j < adj.length; j++) {
-                if(adj[i][j] != null)
-                    lab[adj[i][j].getY() * 2 + 1][adj[i][j].getX() * 2 + 1] = (byte)(i < j ? 7 : 5);
+        for(int i = 0; i < result_adj.length; i++) {
+            for(int j = 0; j < result_adj.length; j++) {
+                if(result_adj[i][j] != null)
+                    lab[result_adj[i][j].getY() * 2 + 1][result_adj[i][j].getX() * 2 + 1] = (byte)(i < j ? 7 : 5);
             }
         }
         // put spaces on connect point
-        for(int i = 0; i < adj.length; i++) {
-            for(int j = i + 1; j < adj.length; j++) {
-                if(adj[i][j] != null) {
-                    Position endPoint = new Position(adj[i][j].getX() * 2 + 1, adj[i][j].getY() * 2 + 1);
-                    Position startPoint = new Position(adj[j][i].getX() * 2 + 1, adj[j][i].getY() * 2 + 1);
+        for(int i = 0; i < result_adj.length; i++) {
+            for(int j = i + 1; j < result_adj.length; j++) {
+                if(result_adj[i][j] != null) {
+                    Position endPoint = new Position(result_adj[i][j].getX() * 2 + 1, result_adj[i][j].getY() * 2 + 1);
+                    Position startPoint = new Position(result_adj[j][i].getX() * 2 + 1, result_adj[j][i].getY() * 2 + 1);
                     Position diff = endPoint.diff(startPoint);
                     Position space = startPoint.sum(diff.normalize());
                     lab[space.getY()][space.getX()] = 0;

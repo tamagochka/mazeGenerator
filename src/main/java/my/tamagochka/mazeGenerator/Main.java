@@ -2,8 +2,8 @@ package my.tamagochka.mazeGenerator;
 
 public class Main {
 
-    private static int LABYRINTH_WIDTH = 9;
-    private static int LABYRINTH_HEIGHT = 9;
+    private static int LABYRINTH_WIDTH = 80;
+    private static int LABYRINTH_HEIGHT = 24;
 
     public static void main(String[] args) {
 
