@@ -1,9 +1,12 @@
 package my.tamagochka.mazeGenerator;
 
+import my.tamagochka.matrix.Graph;
+import my.tamagochka.matrix.Matrix;
+
 public class Main {
 
-    private static int LABYRINTH_WIDTH = 80;
-    private static int LABYRINTH_HEIGHT = 24;
+    private static int LABYRINTH_WIDTH = 10;
+    private static int LABYRINTH_HEIGHT = 10;
 
     public static void main(String[] args) {
 
@@ -14,6 +17,7 @@ public class Main {
 
 
 
+/*
         Labyrinth labyrinth = Labyrinth.clusterGenerator(LABYRINTH_WIDTH, LABYRINTH_HEIGHT,
                 new Position(0, 0), new Position(LABYRINTH_WIDTH - 1, LABYRINTH_HEIGHT - 1));
 
@@ -21,13 +25,50 @@ public class Main {
             Painter painter = new Painter(labyrinth.getFullWidth(), labyrinth.getFullHeight());
             painter.drawLabyrinth(labyrinth);
         }
+*/
+
+/*
+        int[][] A = {
+                {0, 1, 1, 0, 1, 0},
+                {1, 0, 0, 1, 1, 1},
+                {1, 0, 0, 1, 0, 0},
+                {0, 1, 1, 0, 0, 1},
+                {1, 1, 0, 0, 0, 1},
+                {0, 1, 0, 1, 1, 0}
+        };
+*/
+        int[][] A = {
+                {0, 1, 0, 0, 1},
+                {1, 0, 1, 0, 0},
+                {0, 1, 0, 1, 0},
+                {0, 0, 1, 0, 1},
+                {1, 0, 0, 1, 0},
+        };
 
 
+/*
+        int[][] d = Matrix.minPathsBetweenAllVertices(A);
+
+        for(int i = 0; i < d.length; i++) {
+            for(int j = 0; j < d.length; j++) {
+                System.out.print(d[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println();
+*/
 
 
+        int[][] d = Graph.minPathsToVertexThroughVertices(A, 4);
 
+        for(int i = 0; i < d.length; i++) {
+            for(int j = 0; j < d.length; j++) {
+                System.out.print(d[i][j] + " ");
+            }
+            System.out.println();
+        }
 
-
+        System.out.println("maximal path length: " + Graph.maxPathLengthBetweenVertices(A, 0, 4));
 
 
 /*
