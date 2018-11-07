@@ -59,17 +59,19 @@ public class Main {
 */
 
 
-        int[][] d = Graph.minPathsToVertexThroughVertices(A, 4);
 
-        for(int i = 0; i < d.length; i++) {
-            for(int j = 0; j < d.length; j++) {
-                System.out.print(d[i][j] + " ");
+        int[] d = Graph.buildPathOfAGivenLength(A, 0, 4, 5);
+
+//        System.out.println(Graph.checkAvailabilityPathOfAGivenLength(A, 0, 4, 3));
+
+        if(d != null) {
+            for(int i = 0; i < d.length; i++) {
+                System.out.print(d[i] + " ");
             }
             System.out.println();
+        } else {
+            System.out.println("Cannot build path for this length.");
         }
-
-        System.out.println("maximal path length: " + Graph.maxPathLengthBetweenVertices(A, 0, 4));
-
 
 /*
         DefaultTerminalFactory factory = new DefaultTerminalFactory();

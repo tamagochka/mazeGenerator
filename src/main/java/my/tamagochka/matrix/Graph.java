@@ -1,5 +1,8 @@
 package my.tamagochka.matrix;
 
+import java.util.Arrays;
+import java.util.Random;
+
 public class Graph {
 
     public static int[][] minPathsBetweenAllVertices(int[][] adj) {
@@ -89,6 +92,49 @@ public class Graph {
             vertex = index;
         }
         return pathLength;
+    }
+
+    public static boolean checkAvailabilityPathOfAGivenLength(int[][] adj, int fromVertex, int toVertex, int length) {
+        int[][] adjPow = Matrix.pow(adj, length);
+        return adjPow[fromVertex][toVertex] > 0;
+    }
+
+    public static int[] buildPathOfAGivenLength(int[][] adj, int fromVertex, int toVertex, int length) {
+        int D[][] = minPathsToVertexThroughVertices(adj, toVertex);
+        Random random = new Random();
+        boolean[][] visited = new boolean[adj.length][adj.length];
+        int[] path = new int[adj.length];
+        int lenPath = 0;
+        int vertex = fromVertex;
+        while(vertex != toVertex || length != 0) {
+            if(!visited[vertex][vertex])
+                Arrays.fill(visited[vertex], false);
+            visited[vertex][vertex] = true;
+            int[] possible = new int[D.length];
+            int cntPossible = 0;
+            for(int i = 0; i < D.length; i++) {
+                if(length != 1 && i == toVertex) continue;
+                if(!visited[i][i] && !visited[vertex][i] && D[vertex][i] > 0 && D[vertex][i] <= length) {
+                    possible[cntPossible] = i;
+                    cntPossible++;
+                }
+            }
+            if(cntPossible > 0) {
+                path[lenPath] = vertex;
+                vertex = possible[random.nextInt(cntPossible)];
+                visited[path[lenPath]][vertex] = true;
+                lenPath++;
+                length--;
+            } else {
+                visited[vertex][vertex] = false;
+                lenPath--;
+                if(lenPath < 0) return null;
+                vertex = path[lenPath];
+                length++;
+            }
+        }
+        path[lenPath] = vertex;
+        return path;
     }
 
 }
