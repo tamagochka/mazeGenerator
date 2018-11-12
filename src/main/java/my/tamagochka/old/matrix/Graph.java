@@ -1,4 +1,4 @@
-package my.tamagochka.matrix;
+package my.tamagochka.old.matrix;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -103,7 +103,7 @@ public class Graph {
         int D[][] = minPathsToVertexThroughVertices(adj, toVertex);
         Random random = new Random();
         boolean[][] visited = new boolean[adj.length][adj.length];
-        int[] path = new int[adj.length];
+        int[] path = new int[length + 1];
         int lenPath = 0;
         int vertex = fromVertex;
         while(vertex != toVertex || length != 0) {

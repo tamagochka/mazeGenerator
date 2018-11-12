@@ -1,8 +1,10 @@
-package my.tamagochka.mazeGenerator;
+package my.tamagochka.old;
+
+import my.tamagochka.old.matrix.Graph;
 
 import java.util.*;
 
-public class Labyrinth {
+public class Labyrinth1 {
 
     private static final int CHANCE_TO_RECURSE_SPLIT = 50;
     private static final int MINIMAL_BOX_SPLIT = 2;
@@ -215,9 +217,9 @@ public class Labyrinth {
         return lab;
     }
 
-    public static Labyrinth simpleGenerator(int width, int height, Position start, Position finish) {
+    public static Labyrinth1 simpleGenerator(int width, int height, Position start, Position finish) {
         byte[][] lab = generator(width, height, start, finish);
-        Labyrinth labyrinth = new Labyrinth(width, height, lab[0].length, lab.length, lab);
+        Labyrinth1 labyrinth = new Labyrinth1(width, height, lab[0].length, lab.length, lab);
         return labyrinth;
     }
 
@@ -300,7 +302,8 @@ public class Labyrinth {
     }
 */
 
-    public static Labyrinth clusterGenerator(int width, int height, Position start, Position finish) {
+
+    public static Labyrinth1 clusterGenerator(int width, int height, Position start, Position finish) {
 
         if(width < MINIMAL_BOX_SPLIT || height < MINIMAL_BOX_SPLIT) return null;
 
@@ -374,7 +377,7 @@ public class Labyrinth {
         }
 */
 
-        // build all possible paths
+        // turn adj to graph matrix
         int[][] graph = new int[pieces.size()][pieces.size()];
         for(int i = 0; i < pieces.size(); i++) {
             for(int j = 0; j < pieces.size(); j++) {
@@ -384,56 +387,45 @@ public class Labyrinth {
         }
 
         // structure paths == [length route][r][o][u][t][e]...
+        int maxPathLength = Graph.maxPathLengthBetweenVertices(graph, 0, pieces.size() - 1);
+        int minPathLength = (int) Math.round(maxPathLength / 2.0);
 
 
-
-
-
-        List<int[]> possiblePaths = new ArrayList<>(); //pathsFinder(0, pieces.size() - 1, graph);
-        possiblePaths.sort(Comparator.comparingInt(i -> i[0]));
-//        Arrays.sort(possiblePaths, Comparator.comparingInt(i -> i[0]));
-
-        System.out.println("count possible paths: " + possiblePaths.size());
+        System.out.println("maxPathLen: " + maxPathLength);
+        System.out.println("minPathLen: " + minPathLength);
 
         // TODO change length of main path
         // TODO froze
-        System.out.println("before froze");
 
-        final int MIN_LENGTH_MAIN_PATH = 30;
-        final int MAX_LENGTH_MAIN_PATH = 70;
-        int minMainPathLen = possiblePaths.get(possiblePaths.size() - 1)[0] / 100 * MIN_LENGTH_MAIN_PATH;
-        int maxMainPathLen = possiblePaths.get(possiblePaths.size() - 1)[0] / 100 * MAX_LENGTH_MAIN_PATH;
 
-        int minPathLen = 0;
-        int maxPathLen = possiblePaths.size();
-        for(int i = 0; i < possiblePaths.size(); i++) {
-            if(possiblePaths.get(i)[0] > minMainPathLen) {
-                minPathLen = i;
-                break;
-            }
-        }
-        System.out.println("!!!1");
-        for(int i = possiblePaths.size() - 1; i >= 0; i--) {
-            if(possiblePaths.get(i)[0] < maxMainPathLen) {
-                maxPathLen = i;
+        List<int[]> paths = new LinkedList<>();
+        for(int i = minPathLength; i < maxPathLength; i++) {
+            int[] mainPath = Graph.buildPathOfAGivenLength(graph, 0, pieces.size() - 1, i);
+            if(mainPath != null) {
+                paths.add(mainPath);
                 break;
             }
         }
 
-        Random random = new Random();
-        int mainPathNumber = random.nextInt(maxPathLen - minPathLen) + minPathLen;
 
-        System.out.println("after froze");
+        for(int i = 0; i < paths.get(0).length; i++) {
+            System.out.print(paths.get(0)[i]);
+        }
+        System.out.println();
+
+
+
 
         // TODO end froze
 
 
 //        int[][] paths = new int[possiblePaths.length][possiblePaths[0].length];
-        List<int[]> paths = new LinkedList<>();
-        int countPaths = 1;
-//        paths[0] = possiblePaths.get(mainPathNumber);
-        paths.add(possiblePaths.get(mainPathNumber));
 
+//        int countPaths = 1;
+//        paths[0] = possiblePaths.get(mainPathNumber);
+//        paths.add(possiblePaths.get(mainPathNumber));
+
+/*
 
         System.out.println("removing overlapped paths");
         // remove overlapping paths
@@ -492,10 +484,58 @@ public class Labyrinth {
                 }
             }
         }
+*/
+
+        for(int i = 0; i < paths.get(0).length - 1; i++) {
+            graph[paths.get(0)[i]][paths.get(0)[i + 1]] = -1;
+            graph[paths.get(0)[i + 1]][paths.get(0)[i]] = -1;
+        }
+
+        for(int i = 0; i < graph.length; i++) {
+            for(int j = 0; j < graph.length; j++) {
+                if(graph[i][j] >= 0) System.out.print("  " + graph[i][j]);
+                else System.out.print(" " + graph[i][j]);
+            }
+            System.out.println();
+        }
+        System.out.println();
+
+
+        for(int i = 0; i < paths.get(0).length; i++) {
+
+            int[] path = new int[graph.length];
+            int pathLength = 0;
+
+//            boolean[] visited = new
+
+//            int[] availablePaths = new int[graph.length];
+  /*          int countAvailablePaths = 0;
+
+            for(int j = 0; j < graph.length; j++) {
+                if(graph[i][j] == 1) {
+                    boolean flag = true;
+                    for(int k = 0; k < graph.length; k++) {
+                        if(graph[j][k] == -1) flag = false;
+                    }
+                    if(flag) {
+                        availablePaths[countAvailablePaths] = j;
+                        countAvailablePaths++;
+                    }
+                }
+            }
+*/
+
+
+
+
+
+
+        }
+        
 
         // delete from adjacency matrix no route point
         Position[][] result_adj = new Position[adj.length][adj.length];
-        for(int i = 0; i < countPaths; i++) {
+        for(int i = 0; i < paths.size(); i++) {
             for(int j = 1; j < paths.get(i)[0]; j++) {
                 result_adj[paths.get(i)[j]][paths.get(i)[j + 1]] = adj[paths.get(i)[j]][paths.get(i)[j + 1]];
                 result_adj[paths.get(i)[j + 1]][paths.get(i)[j]] = adj[paths.get(i)[j + 1]][paths.get(i)[j]];
@@ -505,7 +545,7 @@ public class Labyrinth {
 
 
         System.out.println("paths:");
-        for(int j = 0; j < countPaths; j++) {
+        for(int j = 0; j < paths.size(); j++) {
             for(int i = 1; i < paths.get(j)[0] + 1; i++) {
                 System.out.print(paths.get(j)[i] + " ");
             }
@@ -553,11 +593,11 @@ public class Labyrinth {
 
 
 
-        Labyrinth labyrinth = new Labyrinth(width, height, fullWidth, fullHeight, lab);
+        Labyrinth1 labyrinth = new Labyrinth1(width, height, fullWidth, fullHeight, lab);
         return labyrinth;
     }
 
-    private Labyrinth(int width, int height, int fullWidth, int fullHeight, byte[][] lab) {
+    private Labyrinth1(int width, int height, int fullWidth, int fullHeight, byte[][] lab) {
         this.width = width;
         this.height = height;
         this.fullWidth = fullWidth;

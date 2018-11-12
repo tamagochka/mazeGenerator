@@ -1,4 +1,4 @@
-package my.tamagochka.matrix;
+package my.tamagochka.old.matrix;
 
 public class Matrix {
 

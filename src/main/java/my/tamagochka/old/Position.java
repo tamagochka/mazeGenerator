@@ -1,4 +1,4 @@
-package my.tamagochka.mazeGenerator;
+package my.tamagochka.old;
 
 public class Position {
 
